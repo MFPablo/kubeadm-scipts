@@ -1,0 +1,72 @@
+#***************************************
+#SELENIUM CHROME NODE
+#***************************************
+apiVersion: v1
+kind: Service
+metadata:
+  name: selenium-chrome-node
+  labels:
+    name: selenium-chrome-node
+    component: "selenium-grid-4"
+spec:
+  selector:
+    app: selenium-chrome-node
+  ports:
+    - name: port1
+      protocol: TCP
+      port: 6900
+      targetPort: 5900
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: selenium-chrome-node-deployment
+  labels:
+    app: selenium-chrome-node
+    name: selenium-chrome-node
+    component: "selenium-grid-4"
+spec:
+  replicas: 16
+  selector:
+    matchLabels:
+      app: selenium-chrome-node
+  template:
+    metadata:
+      labels:
+        app: selenium-chrome-node
+        name: selenium-chrome-node
+        component: "selenium-grid-4"
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: selenium-chrome-node
+          image: selenium/node-chrome:4.1.2-20220208
+          volumeMounts:
+          - name: dshm
+            mountPath: /dev/shm
+          ports:
+            - containerPort: 5553
+              protocol: TCP
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "1"
+            limits:
+              memory: "3Gi"
+              cpu: "16"
+          env:
+            - name: START_XVFB
+              value: "false"
+            - name: SE_EVENT_BUS_HOST
+              value: "selenium-event-bus"
+            - name: SE_EVENT_BUS_PUBLISH_PORT
+              value: "4442"
+            - name: SE_EVENT_BUS_SUBSCRIBE_PORT
+              value: "4443"
+            - name: SE_NODE_MAX_INSTANCES
+              value: "16"
+            - name: SE_NODE_MAX_SESSIONS
+              value: "16"
+      volumes:
+        - name: dshm
+          emptyDir: { "medium": "Memory" }

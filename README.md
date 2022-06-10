@@ -77,6 +77,12 @@ $ sudo apt install vim git wget neofetch
 ```
 $ docker system prune
 ```
+```
+- Si hay mas de dos CRI endpoints
+```
+$ sudo kubeadm init --cri-socket ENDPOINT
+```
+
 
 - Master
 ```
@@ -92,4 +98,10 @@ kubeadm init --pod-network-cidr=IP --control-plane-endpoint=ENDPOINT
 ``` bash
 https://computingforgeeks.com/install-mirantis-cri-dockerd-as-docker-engine-shim-for-kubernetes/#:~:text=Install%20cri%2Ddockerd%20from%20source&text=Confirm%20installation%20by%20checking%20version%20of%20Go.&text=Run%20the%20commands%20below%20to,dockerd%20on%20a%20Linux%20system.
 
+```
+
+## Agregando etiquetas a los nodos
+
+```
+$ kubectl label nodes nombre_nodo etiqueta=rol
 ```
