@@ -1,12 +1,11 @@
 v1.0
-# kubeadm-scipts
+# Kubeadm Install and Config
 
 ## Deshabilitar memoria swap
-
 ```
 $ sudo swapoff -a
 ```
-- Para mantenerla deshabilitada comentar la linea /swap en:
+Para mantenerla deshabilitada comentar la linea /swap en:
 ```
 $ sudo nano /etc/fstab
 ```
@@ -58,7 +57,7 @@ $ sudo apt-get install -y kubelet kubeadm kubectl
 
 ```
 
-- Para congelar las versiones usamos:
+Para congelar las versiones usamos:
 
 ```
 
@@ -66,7 +65,7 @@ $ sudo apt-mark hold kubelet kubeadm kubectl
 
 ```
 
-### Instalación de varios
+## Varios
 
 ```
 $ sudo apt install vim git wget neofetch
@@ -77,31 +76,66 @@ $ sudo apt install vim git wget neofetch
 ```
 $ docker system prune
 ```
-```
 - Si hay mas de dos CRI endpoints
 ```
 $ sudo kubeadm init --cri-socket ENDPOINT
 ```
-
 
 - Master
 ```
 $ sudo kubeadm init
 kubeadm init --pod-network-cidr=IP --control-plane-endpoint=ENDPOINT
 ```
-
-
-# EXTRAS
-
-## CRI-DOCKER INSTALACION
-
-``` bash
-https://computingforgeeks.com/install-mirantis-cri-dockerd-as-docker-engine-shim-for-kubernetes/#:~:text=Install%20cri%2Ddockerd%20from%20source&text=Confirm%20installation%20by%20checking%20version%20of%20Go.&text=Run%20the%20commands%20below%20to,dockerd%20on%20a%20Linux%20system.
-
+Una vez iniciado el master, pegar el token del join aca:
 ```
-
+$ sudo kubeadm join... 
+```
 ## Agregando etiquetas a los nodos
 
 ```
 $ kubectl label nodes nombre_nodo etiqueta=rol
+```
+
+# EXTRAS
+## INSTALACION CRI-DOCKER 
+
+- Seleccionando la ultima version
+
+```
+$ VER=$(curl -s https://api.github.com/repos/Mirantis/cri-dockerd/releases/latest|grep tag_name | cut -d '"' -f 4|sed 's/v//g')
+echo $VER
+```
+- Descargando el binario
+
+```
+$ wget https://github.com/Mirantis/cri-dockerd/releases/download/v${VER}/cri-dockerd-${VER}.amd64.tgz
+tar xvf cri-dockerd-${VER}.amd64.tgz
+```
+- Moviendo el ninario a local/bin
+```
+$ sudo mv cri-dockerd/cri-dockerd /usr/local/bin/
+```
+- Validando instalacion exitosa
+
+```
+$ cri-dockerd --version
+```
+- Configurando systemd para cri-docker
+
+```
+$ wget https://raw.githubusercontent.com/Mirantis/cri-dockerd/master/packaging/systemd/cri-docker.service
+$ wget https://raw.githubusercontent.com/Mirantis/cri-dockerd/master/packaging/systemd/cri-docker.socket
+$ sudo mv cri-docker.socket cri-docker.service /etc/systemd/system/
+$ sudo sed -i -e 's,/usr/bin/cri-dockerd,/usr/local/bin/cri-dockerd,' /etc/systemd/system/cri-docker.service
+```
+- Iniciando y habilitando los servicios
+
+```
+$ sudo systemctl daemon-reload
+$ sudo systemctl enable cri-docker.service
+$ sudo systemctl enable --now cri-docker.socket
+```
+- Confirmando que el servicio esta correindo
+```
+$ systemctl status cri-docker.socket
 ```

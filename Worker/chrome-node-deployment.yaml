@@ -16,6 +16,9 @@ spec:
       protocol: TCP
       port: 6900
       targetPort: 5900
+    - name: "selenium-chrome-node"
+      port: 5555 
+      targetPort: 5555  
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -26,7 +29,7 @@ metadata:
     name: selenium-chrome-node
     component: "selenium-grid-4"
 spec:
-  replicas: 16
+  replicas: 1
   selector:
     matchLabels:
       app: selenium-chrome-node
@@ -38,6 +41,8 @@ spec:
         component: "selenium-grid-4"
     spec:
       restartPolicy: Always
+      nodeSelector:
+        role: worker
       containers:
         - name: selenium-chrome-node
           image: selenium/node-chrome:4.1.2-20220208
@@ -45,7 +50,7 @@ spec:
           - name: dshm
             mountPath: /dev/shm
           ports:
-            - containerPort: 5553
+            - containerPort: 5555
               protocol: TCP
           resources:
             requests:
@@ -57,6 +62,8 @@ spec:
           env:
             - name: START_XVFB
               value: "false"
+            # - name: SE_NODE_HOST
+            #   value: "selenium-node"  
             - name: SE_EVENT_BUS_HOST
               value: "selenium-event-bus"
             - name: SE_EVENT_BUS_PUBLISH_PORT
