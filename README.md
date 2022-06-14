@@ -64,39 +64,6 @@ Para congelar las versiones usamos:
 $ sudo apt-mark hold kubelet kubeadm kubectl
 
 ```
-
-## Varios
-
-```
-$ sudo apt install vim git wget neofetch
-```
-# Iniciando KUBEADM
-
-- Si el runtime no arranca:
-```
-$ docker system prune
-```
-- Si hay mas de dos CRI endpoints
-```
-$ sudo kubeadm init --cri-socket ENDPOINT
-```
-
-- Master
-```
-$ sudo kubeadm init
-kubeadm init --pod-network-cidr=IP --control-plane-endpoint=ENDPOINT
-```
-Una vez iniciado el master, pegar el token del join aca:
-```
-$ sudo kubeadm join... 
-```
-## Agregando etiquetas a los nodos
-
-```
-$ kubectl label nodes nombre_nodo etiqueta=rol
-```
-
-# EXTRAS
 ## INSTALACION CRI-DOCKER 
 
 - Seleccionando la ultima version
@@ -111,7 +78,7 @@ echo $VER
 $ wget https://github.com/Mirantis/cri-dockerd/releases/download/v${VER}/cri-dockerd-${VER}.amd64.tgz
 tar xvf cri-dockerd-${VER}.amd64.tgz
 ```
-- Moviendo el ninario a local/bin
+- Moviendo el binario a local/bin
 ```
 $ sudo mv cri-dockerd/cri-dockerd /usr/local/bin/
 ```
@@ -138,4 +105,76 @@ $ sudo systemctl enable --now cri-docker.socket
 - Confirmando que el servicio esta correindo
 ```
 $ systemctl status cri-docker.socket
+```
+## Varios
+
+```
+$ sudo apt install vim git wget neofetch
+```
+# Iniciando KUBEADM
+
+- Si el runtime no arranca:
+```
+$ docker system prune
+```
+- Si hay mas de dos CRI endpoints
+```
+$ sudo kubeadm init --cri-socket ENDPOINT
+```
+
+- Master
+```
+$ sudo kubeadm init --cri-socket unix:///var/run/cri-dockerd.sock
+kubeadm init --pod-network-cidr=IP --control-plane-endpoint=ENDPOINT
+```
+Una vez iniciado el master
+```
+$ mkdir -p $HOME/.kube
+$ sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+$ sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+
+$ sudo kubeadm join <IP DEL MASTER> --cri-socket unix:///var/run/cri-dockerd.sock --token <TOKEN> --discovery-token-ca-cert-hash sha256:<CERT>
+```
+## Para conocer el token
+```
+$ sudo kubeadm token create --print-join-command
+```
+
+## Resetear un cluster
+```
+$ sudo kubeadm reset -f --cri-socket unix:///var/run/cri-dockerd.sock
+```
+## Agregando etiquetas a los nodos
+
+```
+$ kubectl label nodes <nombre_nodo> etiqueta=rol
+```
+Para eliminar una etiqueta
+
+```
+$  kubectl label nodes <nombre_nodo> <etiqueta>-
+```
+
+
+# EXTRAS
+## CALICO
+
+### Instalar calico
+```
+$ cd ~/agilitydocs/docs/class1/kubernetes/calico
+
+$ curl https://docs.projectcalico.org/manifests/calico.yaml -O
+
+$ vim calico.yaml
+
+$ kubectl apply -f calico.yaml
+```
+### Instalar calicoctl
+```
+$ curl -O -L https://github.com/projectcalico/calicoctl/releases/download/v3.15.1/calicoctl
+
+$ chmod +x calicoctl
+
+$ sudo mv calicoctl /usr/local/bin
 ```

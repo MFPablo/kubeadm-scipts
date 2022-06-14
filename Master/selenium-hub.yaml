@@ -1,0 +1,128 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: selenium-svc
+  labels:
+    app: selenium-svc
+spec:
+  selector:
+    app: selenium-hub
+  ports:
+  - name: port1
+    protocol: TCP
+    port: 4442
+    targetPort: 4442
+  - name: port2
+    protocol: TCP
+    port: 4443
+    targetPort: 4443
+  - name: port3
+    protocol: TCP 
+    port: 4444
+    targetPort: 4444
+    nodePort: 30001
+  type: NodePort
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: selenium-hub
+spec:
+  selector:
+    matchLabels:
+      app: selenium-hub
+  template:
+    metadata:
+      labels:
+        app: selenium-hub
+    spec:
+      containers:
+      - name: selenium-hub
+        image: selenium/hub:4.1.2
+        resources:
+          limits:
+            memory: "3G"
+            cpu: "2"
+        ports:
+          - containerPort: 4442
+            protocol: TCP
+          - containerPort: 4443
+            protocol: TCP
+          - containerPort: 4444  
+            protocol: TCP
+---
+#***************************************
+#SELENIUM CHROME NODE
+#***************************************
+apiVersion: v1
+kind: Service
+metadata:
+  name: selenium-chrome-node
+  labels:
+    name: selenium-chrome-node
+    component: "selenium-grid-4"
+spec:
+  selector:
+    app: selenium-chrome-node
+  ports:
+    - name: port1
+      protocol: TCP
+      port: 5555
+      targetPort: 5555
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: selenium-chrome-node-deployment
+  labels:
+    app: selenium-chrome-node
+    name: selenium-chrome-node
+    component: "selenium-grid-4"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: selenium-chrome-node
+  template:
+    metadata:
+      labels:
+        app: selenium-chrome-node
+        name: selenium-chrome-node
+        component: "selenium-grid-4"
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: selenium-chrome-node
+          image: selenium/node-chrome:4.1.2-20220208
+          volumeMounts:
+          - name: dshm
+            mountPath: /dev/shm
+          ports:
+            - containerPort: 5555
+              protocol: TCP
+            - containerPort: 5553
+              protocol: TCP
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "1"
+            limits:
+              memory: "4Gi" 
+              cpu: "16"   
+          env:
+            - name: START_XVFB
+              value: "true"
+            - name: SE_EVENT_BUS_HOST
+              value: "IP DEL HUB"
+            - name: SE_EVENT_BUS_PUBLISH_PORT
+              value: "4442"
+            - name: SE_EVENT_BUS_SUBSCRIBE_PORT
+              value: "4443"
+            - name: SE_NODE_MAX_INSTANCES
+              value: "16"
+            - name: SE_NODE_MAX_SESSIONS
+              value: "16"    
+      volumes:
+        - name: dshm
+          emptyDir: { "medium": "Memory" }
+        
