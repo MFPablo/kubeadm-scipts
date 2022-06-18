@@ -93,12 +93,15 @@ $ sudo apt install vim git wget neofetch
 ```
 $ sudo kubeadm init 
 
+-- (Avanzado) --
 $ kubeadm init --pod-network-cidr=10.10.0.0/16 --control-plane-endpoint=ENDPOINT
 ```
 Una vez iniciado el master
 ```
 $ mkdir -p $HOME/.kube
+
 $ sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+
 $ sudo chown $(id -u):$(id -g) $HOME/.kube/config
 ```
 
@@ -107,7 +110,7 @@ $ sudo chown $(id -u):$(id -g) $HOME/.kube/config
 
 $ kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')"
 ```
-Una vez instalado el CNI unir los workers
+### Una vez instalado el CNI unir los workers
 ```
 $ sudo kubeadm join <IP DEL MASTER> --cri-socket unix:///var/run/cri-dockerd.sock --token <TOKEN> --discovery-token-ca-cert-hash sha256:<CERT>
 ```
@@ -118,9 +121,18 @@ $ sudo kubeadm token create --print-join-command
 
 ## Resetear un cluster
 ```
-$ sudo kubeadm reset -f --cri-socket unix:///var/run/cri-dockerd.sock
+$ sudo kubeadm reset -f 
 ```
 ## Agregando etiquetas a los nodos
+
+El yaml esta configrado asi:
+```
+$ kubectl label nodes <NOMBRE_MASTER> rol=head
+
+$ kubectl label nodes <NOMBRE_WORKER1> rol=worker1
+```
+
+### Para cambiar las etiquetas (Tambien cambiar en el yaml "nodeSelector")
 
 ```
 $ kubectl label nodes <nombre_nodo> etiqueta=rol
@@ -130,5 +142,66 @@ Para eliminar una etiqueta
 ```
 $  kubectl label nodes <nombre_nodo> <etiqueta>-
 ```
+## Workloads en el control-plane
 
-# EXTRAS
+### TAINTS
+
+Sacar
+```
+kubectl taint nodes pablo-note node-role.kubernetes.io/master-
+kubectl taint nodes pablo-note node-role.kubernetes.io/control-plane-
+```
+Agregar
+```
+kubectl taint nodes pablo-note node-role.kubernetes.io/master=true:NoSchedule
+kubectl taint nodes pablo-note node-role.kubernetes.io/control-plane:NoSchedule
+```
+
+# INFRA
+
+### CASO DE 3 VMs 
+
+- Ventajas: Mayor reliabilidad y managment del cluster.
+
+```
+** Control-plane **
+2 cores
+2 gb ram
+10 gb disco
+
+** HUB ** 
+ 4 Cores
+ 4 Gb ram
+20 Gb disco
+
+** NODOS **
+16 Cores
+40 Gb ram
+40 Gb disco
+```
+
+### CASO DE 2 VMs
+
+- Ventajas: Menos infra a asignar
+
+```
+
+** Control-Plane & HUB **
+ 4 Cores
+ 6 Gb ram
+20 Gb disco
+
+** NODOS **
+16 Cores
+40 Gb ram
+30 Gb disco
+```
+
+## LINKS UTILES
+```
+https://www.youtube.com/watch?v=7fxuQip0Gn4
+https://github.com/weaveworks/weave
+https://www.weave.works/docs/net/latest/kubernetes/kube-addon/#install
+https://github.com/kodekloudhub/certified-kubernetes-administrator-course
+https://github.com/deiveehan/xplore-kubernetes/blob/master/setup/custom/setup_updated.md
+```

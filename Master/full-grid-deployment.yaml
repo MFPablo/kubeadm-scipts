@@ -49,7 +49,7 @@ spec:
         role: head
       containers:
         - name: selenium-event-bus
-          image: selenium/event-bus:4.1.2-20220208
+          image: selenium/event-bus:4.2.2
           ports:
             - containerPort: 4442
               protocol: TCP
@@ -101,7 +101,7 @@ spec:
         role: head
       containers:
         - name: selenium-sessions
-          image: selenium/sessions:4.1.2-20220208
+          image: selenium/sessions:4.2.2
           env:
             - name: SE_EVENT_BUS_HOST
               value: "selenium-event-bus"
@@ -153,10 +153,10 @@ spec:
         component: "selenium-grid-4"
     spec:
       nodeSelector:
-        role: head
+        role: head    
       containers:
         - name: selenium-session-queue
-          image: selenium/session-queue:4.1.2-20220208
+          image: selenium/session-queue:4.2.2
           env:
             - name: SE_EVENT_BUS_HOST
               value: "selenium-event-bus"
@@ -208,10 +208,10 @@ spec:
         component: "selenium-grid-4"
     spec:
       nodeSelector:
-        role: head  
+        role: head    
       containers:
         - name: selenium-distributor
-          image: selenium/distributor:4.1.2-20220208
+          image: selenium/distributor:4.2.2
           env:
             - name: SE_EVENT_BUS_HOST
               value: "selenium-event-bus"
@@ -251,7 +251,7 @@ spec:
       targetPort: 4444
       nodePort: 30001
   type: NodePort
-  sessionAffinity: None
+  sessionAffinity: None  
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -274,10 +274,10 @@ spec:
         component: "selenium-grid-4"
     spec:
       nodeSelector:
-        role: head
+        role: head    
       containers:
         - name: selenium-router
-          image: selenium/router:4.1.2-20220208
+          image: selenium/router:4.2.2
           env:
             - name: SE_DISTRIBUTOR_HOST
               value: "selenium-distributor"
@@ -294,3 +294,137 @@ spec:
           ports:
             - containerPort: 4444
               protocol: TCP
+---
+#***************************************
+#SELENIUM CHROME NODE
+#***************************************
+apiVersion: v1
+kind: Service
+metadata:
+  name: selenium-chrome-node
+  labels:
+    name: selenium-chrome-node
+    component: "selenium-grid-4"
+spec:
+  selector:
+    app: selenium-chrome-node
+  ports:
+    - name: port1
+      protocol: TCP
+      port: 6900
+      targetPort: 5900
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: selenium-chrome-node-deployment
+  labels:
+    app: selenium-chrome-node
+    name: selenium-chrome-node
+    component: "selenium-grid-4"
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: selenium-chrome-node
+  template:
+    metadata:
+      labels:
+        app: selenium-chrome-node
+        name: selenium-chrome-node
+        component: "selenium-grid-4"
+    spec:
+      nodeSelector:
+        role: worker2  
+      restartPolicy: Always
+      containers:
+        - name: selenium-chrome-node
+          image: selenium/node-chrome:4.2.2
+          volumeMounts:
+          - name: dshm
+            mountPath: /dev/shm
+          ports:
+            - containerPort: 5553
+              protocol: TCP
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "1"
+            limits:
+              memory: "4Gi" 
+              cpu: "16"   
+          env:
+            - name: START_XVFB
+              value: "false"
+            - name: SE_EVENT_BUS_HOST
+              value: "selenium-event-bus"
+            - name: SE_EVENT_BUS_PUBLISH_PORT
+              value: "4442"
+            - name: SE_EVENT_BUS_SUBSCRIBE_PORT
+              value: "4443"
+            - name: SE_NODE_MAX_INSTANCES
+              value: "16"
+            - name: SE_NODE_MAX_SESSIONS
+              value: "16"    
+      volumes:
+        - name: dshm
+          emptyDir: { "medium": "Memory" }
+---          
+# #***************************************
+# #SELENIUM FIREFOX NODE
+# #***************************************
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: selenium-node-firefox
+#   labels:
+#     app: selenium-node-firefox
+#     name: selenium-node-firefox
+#     component: "selenium-grid-4"
+# spec:
+#   replicas: 2
+#   selector:
+#     matchLabels:
+#       app: selenium-node-firefox
+#   template:
+#     metadata:
+#       labels:
+#         app: selenium-node-firefox
+#         name: selenium-node-firefox
+#         component: "selenium-grid-4"
+#     spec:
+#       nodeSelector:
+#         role: worker1  
+#       restartPolicy: Always
+#       containers:
+#       - name: selenium-node-firefox
+#         image: selenium/node-firefox:4.2.2
+#         ports:
+#           - containerPort: 5553
+#             protocol: TCP
+#         volumeMounts:
+#           - name: dshm
+#             mountPath: /dev/shm
+#         resources:
+#             requests:
+#               memory: "128Mi"
+#               cpu: "1"
+#             limits:
+#               memory: "4Gi" 
+#               cpu: "16"    
+#         env:
+#           - name: START_XVFB
+#             value: "false"
+#           - name: SE_EVENT_BUS_HOST
+#             value: "selenium-event-bus"
+#           - name: SE_EVENT_BUS_SUBSCRIBE_PORT
+#             value: "4443"
+#           - name: SE_EVENT_BUS_PUBLISH_PORT
+#             value: "4442"
+#           - name: SE_NODE_MAX_INSTANCES
+#             value: "16"
+#           - name: SE_NODE_MAX_SESSIONS
+#             value: "16" 
+#       volumes:
+#         - name: dshm
+#           emptyDir: { "medium": "Memory" }       
