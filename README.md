@@ -204,4 +204,7 @@ https://github.com/weaveworks/weave
 https://www.weave.works/docs/net/latest/kubernetes/kube-addon/#install
 https://github.com/kodekloudhub/certified-kubernetes-administrator-course
 https://github.com/deiveehan/xplore-kubernetes/blob/master/setup/custom/setup_updated.md
+
+https://www.youtube.com/watch?v=J1VbZR7j4sI
+https://www.youtube.com/watch?v=nRZx2jccK1I
 ```
