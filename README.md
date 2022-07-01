@@ -84,9 +84,19 @@ $ sudo apt-mark hold kubelet kubeadm kubectl
 ## Varios
 
 ```
-$ sudo apt install vim git wget neofetch
+$ sudo apt install -y vim git wget neofetch
 ```
+## Habilitar CRI en containerd
 
+```
+$ sudo vim /etc/containerd/config.toml
+
+```
+- Comentar o borrar disable_plugins["CRI"]
+
+```
+$ systemctl restart containerd
+```
 # Iniciando KUBEADM
 
 - SOLO EN MASTER
@@ -155,46 +165,6 @@ Agregar
 ```
 kubectl taint nodes pablo-note node-role.kubernetes.io/master=true:NoSchedule
 kubectl taint nodes pablo-note node-role.kubernetes.io/control-plane:NoSchedule
-```
-
-# INFRA
-
-### CASO DE 3 VMs 
-
-- Ventajas: Mayor reliabilidad y managment del cluster.
-
-```
-** Control-plane **
-2 cores
-2 gb ram
-10 gb disco
-
-** HUB ** 
- 4 Cores
- 4 Gb ram
-20 Gb disco
-
-** NODOS **
-16 Cores
-40 Gb ram
-40 Gb disco
-```
-
-### CASO DE 2 VMs
-
-- Ventajas: Menos infra a asignar
-
-```
-
-** Control-Plane & HUB **
- 4 Cores
- 6 Gb ram
-20 Gb disco
-
-** NODOS **
-16 Cores
-40 Gb ram
-30 Gb disco
 ```
 
 ## LINKS UTILES

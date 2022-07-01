@@ -323,7 +323,7 @@ metadata:
     name: selenium-chrome-node
     component: "selenium-grid-4"
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       app: selenium-chrome-node
@@ -335,7 +335,7 @@ spec:
         component: "selenium-grid-4"
     spec:
       nodeSelector:
-        role: worker2  
+        role: worker  
       restartPolicy: Always
       containers:
         - name: selenium-chrome-node
@@ -351,11 +351,13 @@ spec:
               memory: "128Mi"
               cpu: "1"
             limits:
-              memory: "4Gi" 
-              cpu: "16"   
+              memory: "1Gi" 
+              cpu: "8"   
           env:
             - name: START_XVFB
               value: "false"
+            - name: SE_NODE_SESSION_TIMEOUT  
+              value: "300"
             - name: SE_EVENT_BUS_HOST
               value: "selenium-event-bus"
             - name: SE_EVENT_BUS_PUBLISH_PORT
@@ -363,9 +365,9 @@ spec:
             - name: SE_EVENT_BUS_SUBSCRIBE_PORT
               value: "4443"
             - name: SE_NODE_MAX_INSTANCES
-              value: "16"
+              value: "8"
             - name: SE_NODE_MAX_SESSIONS
-              value: "16"    
+              value: "8"    
       volumes:
         - name: dshm
           emptyDir: { "medium": "Memory" }
