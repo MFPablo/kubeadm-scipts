@@ -49,7 +49,7 @@ spec:
         role: head
       containers:
         - name: selenium-event-bus
-          image: selenium/event-bus:4.2.2
+          image: selenium/event-bus:4.0
           ports:
             - containerPort: 4442
               protocol: TCP
@@ -101,7 +101,7 @@ spec:
         role: head
       containers:
         - name: selenium-sessions
-          image: selenium/sessions:4.2.2
+          image: selenium/sessions:4.0
           env:
             - name: SE_EVENT_BUS_HOST
               value: "selenium-event-bus"
@@ -156,7 +156,7 @@ spec:
         role: head    
       containers:
         - name: selenium-session-queue
-          image: selenium/session-queue:4.2.2
+          image: selenium/session-queue:4.0
           env:
             - name: SE_EVENT_BUS_HOST
               value: "selenium-event-bus"
@@ -211,7 +211,7 @@ spec:
         role: head    
       containers:
         - name: selenium-distributor
-          image: selenium/distributor:4.2.2
+          image: selenium/distributor:4.0
           env:
             - name: SE_EVENT_BUS_HOST
               value: "selenium-event-bus"
@@ -277,7 +277,7 @@ spec:
         role: head    
       containers:
         - name: selenium-router
-          image: selenium/router:4.2.2
+          image: selenium/router:4.0
           env:
             - name: SE_DISTRIBUTOR_HOST
               value: "selenium-distributor"
@@ -313,6 +313,10 @@ spec:
       protocol: TCP
       port: 6900
       targetPort: 5900
+    - name: port2
+      protocol: TCP
+      port: 5553
+      targetPort: 5553
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -335,11 +339,11 @@ spec:
         component: "selenium-grid-4"
     spec:
       nodeSelector:
-        role: worker  
+        role: worker
       restartPolicy: Always
       containers:
         - name: selenium-chrome-node
-          image: selenium/node-chrome:4.2.2
+          image: selenium/node-chrome:99.0
           volumeMounts:
           - name: dshm
             mountPath: /dev/shm
@@ -356,6 +360,8 @@ spec:
           env:
             - name: START_XVFB
               value: "false"
+            - name: SE_NODE_GRID_URL
+              value: "http://localhost:30001/"
             - name: SE_NODE_SESSION_TIMEOUT  
               value: "300"
             - name: SE_EVENT_BUS_HOST
